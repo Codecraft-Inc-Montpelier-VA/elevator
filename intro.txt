@@ -60,7 +60,7 @@ As I read Leon's book, I realized that his elevators would provide a
 great milieu for demonstrating and testing my coroutines.
 An elevator simulation demonstration would provide a more realistic and 
 challenging subject matter than the +darts+ and +abc+ programsfootnote:[See 
-<<cc-darts>> for my 
+<<cc-darts-program>> for my 
 +darts+ literate program.]
 I had previously used as coroutine test programs.
 So I developed this +elevator+ program, 
@@ -326,7 +326,9 @@ roundtrip count, and average time per cycle.
 
 == +elevator+ Execution Instructions
 
-. Run the +elevator+ executable in a macOSfootnote:[Big Sur (11.0), 
+. Run the +elevator+ executablefootnote:[See 
+<<cc-elevator-mac>> and <<cc-elevator-win>> for macOS and Windows (Cygwin)
+executables, respectively.] in a macOSfootnote:[Big Sur (11.0), 
 or later, is supported.] or Windows (Cygwin) Terminal. 
 +
 The size of the Terminal screen must be sufficient to display the

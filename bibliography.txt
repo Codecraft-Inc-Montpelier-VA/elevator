@@ -9,11 +9,39 @@
     ISBN 0-9708044-0-7.
 [bibliography]
 .Articles
-- [[[cc-darts]]] Cary WR Campbell,
-    'The +darts+ Program',
-    2021,
-    available from the author.
 - [[[pbh-edison]]] Per Brinch Hansen, 
     'Edison--a Multiprocessor Language', 
     _Software Practice and Experience_ 11, no. 4 (April 1981): 325 - 362.
+[bibliography]
+.Programs
+- [[[cc-darts-program]]] Cary WR Campbell,
+    'The +darts+ Literate Program',
+    March 2021,
+    https://drive.google.com/file/d/1qOwo0P0nbFlritH3ha4FHqa6i1VwOTwS/view?usp=sharing.
+- [[[cc-darts-mac]]] Cary WR Campbell,
+    'The +darts+ Program Executable File--macOS Version',
+    March 2021,
+    https://drive.google.com/file/d/1fmRXu69oFyWag_Li-UGkLO-H0-Ufwt_q/view?usp=sharing.
+- [[[cc-darts-win]]] Cary WR Campbell,
+    'The +darts+ Program Executable File--Windows (Cygwin) Version',
+    March 2021,
+    https://drive.google.com/file/d/1MaQGIpnH1-i7DltL2f_RQaS0BBzxkOET/view?usp=sharing.
+- [[[cc-elevator-mac]]] Cary WR Campbell,
+    'The +elevator+ Program Executable File--macOS Version',
+    March 2021,
+    https://drive.google.com/file/d/1Zk0dyyKOYPEWoDlzvhlVwKkxyC1LrOyx/view?usp=sharing.
+- [[[cc-elevator-win]]] Cary WR Campbell,
+    'The +elevator+ Program Executable File--Windows (Cygwin) Version',
+    March 2021,
+    https://drive.google.com/file/d/1RmH_YHJoC3JVuNUmPJXYLfvCzEl-XSUu/view?usp=sharing.
+[bibliography]
+.Projects
+- [[[cc-darts-git]]] Cary WR Campbell,
+    'The +darts+ Program GitHub Project',
+    August 2021,
+    https://github.com/Codecraft-Inc-Montpelier-VA/darts.
+- [[[cc-elevator-git]]] Cary WR Campbell,
+    'The +elevator+ Program GitHub Project',
+    August 2021,
+    https://github.com/Codecraft-Inc-Montpelier-VA/elevator.
 

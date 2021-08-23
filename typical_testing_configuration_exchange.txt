@@ -1,0 +1,58 @@
+@startuml
+skinparam sequenceMessageAlign direction
+
+== Hello Message ==
+
+testing_process -> elevator: Ola!
+elevator --> testing_process: OKdebug/elevator 1.0
+
+== Query Maximum Dimensions ==
+
+testing_process -> elevator: ?MD
+testing_process <-- elevator: MD671
+
+== Query Floor Labels ==
+
+testing_process -> elevator: ?FL
+testing_process <-- elevator: FLBL2345
+
+== Set Floor Height ==
+
+testing_process -> elevator: !FH3.048000
+testing_process <-- elevator: FH#OK
+
+== Set Door Open / Close Time ==
+
+testing_process -> elevator: !DO4000
+testing_process <-- elevator: DO#OK
+
+== Set Maximum Car Velocity ==
+
+testing_process -> elevator: !CV0.900000
+testing_process <-- elevator: CV#OK
+
+== Set Maximum Door Close Attempts ==
+
+testing_process -> elevator: !CA11
+testing_process <-- elevator: CA#OK
+
+== Set Normal Door Wait Time ==
+
+testing_process -> elevator: !DW12000
+testing_process <-- elevator: DW#OK
+
+== Set Minimum Stopping Distance ==
+
+testing_process -> elevator: !MS1.000000
+testing_process <-- elevator: MS#OK
+
+== Set Block Clear Time ==
+
+testing_process -> elevator: !BC7000
+testing_process <-- elevator: BC#OK
+
+== End Configuration ==
+
+testing_process -> elevator: ?EC
+testing_process <-- elevator: EC#OK
+@enduml
