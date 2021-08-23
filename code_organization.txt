@@ -1,0 +1,248 @@
+== Code Layout
+
+In literate programming terminology,
+a _chunk_ is a named part of the final program.
+The program chunks form a tree and the root of that tree
+is named '\*' by default.
+We follow the convention of naming the root the same as the output
+file name.
+There are four roots in this literate program, 
+the +elevator.cpp+ file,
+the Notification header and Fifo class file, +fifo.h+,
+the named pipes header file, +pipe_interface.h+, 
+and the +pipe_commands.cpp+ file. 
+The process of extracting the program tree formed by the chunks is
+called _tangle_.
+The program, +atangle+, extracts each root chunk to produce
+the corresponding C/C++ source file.
+
+=== +elevator.cpp+
+
+[source,c]
+----
+<<elevator.cpp>>=
+<<edit warning>>
+<<copyright info>>
+/*
+ *++
+ * Project:
+ *   +elevator+ -- a test program for coroutines and ncurses.  <by Cary WR Campbell>
+ *
+ * Module:
+ *   +elevator+ executable for macOS.
+ *--
+ */
+/*
+ * Configuration
+ */
+/******************************* Configuration ********************************/
+/* Uncomment the following define line for a histogram of coroutine           **
+** round-trip latencies.                                                      */
+#define SHOW_HISTOGRAM
+/* Uncomment the following define line for more info about the configuration  **
+** sent from the test program.                                                */
+//#define VERBOSE_CONFIGURATION
+/* Uncomment the following define line to show elevator car availability.     */
+//#define SHOW_AVAILABILITY
+/******************************************************************************/
+/*
+ * Include files
+ */
+#include <iostream>
+//#include <stdio.h>
+<<include files>>
+using namespace std ;
+/*
+ * Type Definitions
+ */
+<<type definitions>>
+/*
+ * Constants
+ */
+<<constants>>
+/*
+ * Variables
+ */
+<<global variables>>
+/*
+ * Forward References
+ */
+<<forward references>>
+/*
+ * elevator main Routine
+ */
+<<main routine>>
+/*
+ * elevator Coroutines
+ */
+<<elevator coroutines>>
+/*
+ * elevator Utility Routines
+ */
+<<elevator utilities>>
+----
+
+=== +fifo.h+
+
+[source,c]
+----
+<<fifo.h>>=
+<<edit warning>>
+<<copyright info>>
+/*
+ *++
+ * Project:
+ *   +elevator+ -- a test program for coroutines and ncurses.  <by Cary WR Campbell>
+ *
+ * Module:
+ *   +Notification+ header and +Fifo+ queueing class file for message passing between
+ *   +elevator+ simulation +Components+.
+ *--
+ */
+/* 
+ * Constants and Typedefs
+ */
+<<notification constants and typedefs>>
+/*
+ * Fifo Class
+ */
+class Fifo {
+   public:
+<<fifo public>>
+   private:
+<<fifo private>>
+} ;
+----
+
+=== +pipe_interface.h+
+
+[source,c]
+----
+<<pipe_interface.h>>=
+<<edit warning>>
+<<copyright info>>
+/*
+ *++
+ * Project:
+ *   +elevator+ -- a test program for coroutines and ncurses.  <by Cary WR Campbell>
+ *
+ * Module:
+ *   Pipe interface header file for commands and status messages shared 
+ *   by elevator and a test process, e.g., Elevator Verification Test (EVT).
+ *--
+ */
+/* 
+ * Pipe Definitions
+ */
+<<pipe definitions>>
+/*
+ * Pipe Constants
+ */
+<<pipe constants>>
+/*
+ * Pipe Externs
+ */
+extern const char endConfiguration[] ;
+extern const char helloMessage[] ;
+extern const char queryFloorLabels[] ;
+extern const char queryMaxDimensions[] ;
+extern const char quitTest[] ;
+extern const char setBlockClearTime[] ;
+extern const char setDoorOpenCloseTime[] ;
+extern const char setFloorHeight[] ;
+extern const char setFloorLabels[] ;
+extern const char setGroundFloorLevel[] ;
+extern const char setMaxCabinVelocity[] ;
+extern const char setMaxCloseAttempts[] ;
+extern const char setMinStoppingDistance[] ;
+extern const char setNormalDoorWaitTime[] ;
+extern const char setNumberOfElevators[] ;
+extern const char setNumberOfFloors[] ;
+extern const char userRequestedQuitTest[] ;
+extern const char obstructDoorCommand[] ;
+extern const char pushCarButtonCommand[] ;
+extern const char pushFloorButtonCommand[] ;
+extern const char P_BAD[] ;
+extern const char P_OK[] ;
+extern const char P_END[] ;
+extern const char carLocation[] ;
+extern const char doorIsClosed[] ;
+extern const char doorIsLocked[] ;
+extern const char doorIsAjar[] ;
+extern const char doorIsOpen[] ;
+extern const char indicatorIsDown[] ;
+extern const char indicatorIsUp[] ;
+extern const char indicatorIsOff[] ;
+extern const char stopIsRequested[] ;
+extern const char stopIsCleared[] ;
+extern const char floorCallIsUp[] ;
+extern const char floorCallIsDown[] ;
+extern const char floorUpIsCleared[] ;
+extern const char floorDownIsCleared[] ;
+----
+
+=== +pipe_commands.cpp+
+
+[source,c]
+----
+<<pipe_commands.cpp>>=
+<<edit warning>>
+<<copyright info>>
+/*
+ *++
+ * Project:
+ *   +elevator+ -- a test program for coroutines and ncurses.  <by Cary WR Campbell>
+ *
+ * Module:
+ *   Pipe commands and status messages shared by elevator and a test process, 
+ *   e.g., Elevator Verification Test (EVT).
+ *--
+ */
+/*
+ * Test start and stop commands (from EVT -> elevator):
+ */
+<<pipe start and stop commands>>
+/* 
+ * Test configuration commands (from EVT -> elevator) with responses
+ * (from elevator -> EVT):
+ *
+ * f=float, i=integer, s=string, y=#floors, x=#elevators, g=grndFlr
+ * Note: lengths are in meters, times in milliseconds, velocity in meters/second.
+ */
+<<pipe configuration commands>>
+/*
+ * Test stimulation commands (from EVT -> elevator) with no response:
+ */
+<<pipe stimulation commands>>
+const char obstructDoorCommand[]    = "Oax"; // "Hold | release shaft x door."
+const char pushCarButtonCommand[]   = "Cyx"; // "Push button y in car x."
+const char pushFloorButtonCommnd[]  = "Fyi"; // "Push u or d button on floor y."
+/*
+ * Statuses (from elevator -> EVT):
+ */
+<<pipe statuses>>
+/*
+ * Notifications (from elevator -> EVT):
+ */
+ <<pipe notifications>>
+const char carLocation[]            = "@yx"; // "Car x is at floor y."
+const char doorIsClosed[]           = "%|x"; // "Car x's door is closed."
+const char doorIsLocked[]           = "% x"; // "Car x's door is locked."
+const char doorIsAjar[]             = "%-x"; // "Car x's door is half-way open."
+const char doorIsOpen[]             = "%Ox"; // "Car x's door is completely
+                                             //    open."
+const char indicatorIsDown[]        = "~vx"; // "Car x's indicator is 'down'."
+const char indicatorIsUp[]          = "~^x"; // "Car x's indicator is 'up'."
+const char indicatorIsOff[]         = "~ x"; // "Car x's indicator is off."
+const char stopIsRequested[]        = "+yx"; // "Car x's floor y button is lit."
+const char stopIsCleared[]          = ".yx"; // "Car x's floor y button is off."
+const char floorCallIsUp[]          = "*^y"; // "Floor y up call button is lit."
+const char floorCallIsDown[]        = "*vy"; // "Floor y down call button lit."
+const char floorUpIsCleared[]       = "-^y"; // "Floor y up call button is off."
+const char floorDownIsCleared[]     = "-vy"; // "Floor y down call button off."
+----
+
+include::edit_warning.txt[]
+
+include::copyright_info.txt[]
+

@@ -1,0 +1,519 @@
+
+== Introduction
+
+This document describes the +elevator+ program source code and provides 
+instructions for its execution.
+
+The +elevator+ program is a visual and interactive test program for 
+Simple C/C++ Coroutines using Codecraft's open-source sccor library.
++elevator+ runs in an ncursesfootnote:[new curses, a 
+programming library providing an API that allows the programmer to 
+write text-based user interfaces 
+in a terminal-independent manner.] Terminal window as a 
+command-line executable.
+(((sccor Library)))
+(((ncurses)))
+
+The sccor Library's Simple C/C++ Coroutines implementation  
+supports lightweight cooperative multitasking and provides
+for asynchronous programming through the use of 
+Edisonfootnote:[<<pbh-edison>> is an edition of _Software Practice 
+and Experience_ devoted entirely to the Edison papers.]-inspired, 
+single-threaded, non-preemptive, ring-based coroutines.
+(((Edison)))
+
+This version of +elevator+ is an x86_64 executable running on macOS
+or Windows (Cygwin). 
+A Linux version will be available in a future release,
+with the availability of a Linux version of the sccor library.
+
+=== How to Read This Document
+
+This document is a
+http://literateprogramming.com[literate program document].
+As such it includes a complete description of both the design and
+implementation of the +elevator+ test program for simple C/C++ coroutines.
+Further information on the particular literal programming syntax
+used here is given in <<literate-programming,Literate Programming>>.
+
+=== Background
+
+(((Leon Starr)))
+(((The Elevator Project)))
+(((Executable UML)))
+(((XUML)))
+Twenty years ago, Leon Starr published a case study, 
+_Executable UML - The Elevator Project_ <<ls-elevator>>, 
+in which he packaged detailed
+models and documentation for a working elevator control application.
+He chose the elevator as the subject matter of his case study because, 
+as he stated, "you already _know_ how it works - certainly from a user 
+perspective and to some extent from an engineering perspective."
+Leon's book is an excellent exploration of XUML modeling techniques,
+and is highly recommended, although the CDs and provided tooling are 
+somewhat outdated.
+
+(((Simple C/C\++ Coroutines)))
+At about the same time, I was looking for a good vehicle to
+demonstrate and test my Simple C/C++ Coroutines.
+As I read Leon's book, I realized that his elevators would provide a 
+great milieu for demonstrating and testing my coroutines.
+An elevator simulation demonstration would provide a more realistic and 
+challenging subject matter than the +darts+ and +abc+ programsfootnote:[See 
+<<cc-darts>> for my 
++darts+ literate program.]
+I had previously used as coroutine test programs.
+So I developed this +elevator+ program, 
+but utilizing a completely different approach than Leon used, 
+namely using coroutines rather than XUML for the implementation. 
+
+The +elevator+ program was initially developed as a test vehicle for 
+the sccor library. 
+Subsequently, I adapted the +elavator+ program to be the unit under 
+test (UUT) in a demonstration of the Repeatable Random Test Generation
+(RRTGen) frameworkfootnote:[A literate program for RRTGen will be published 
+in 2021.].
+Consequently, the +elevator+ program presented here has dual 
+personalities:  the ability to execute as a standalone elevator 
+simulatiion, with human interaction
+driving the simulation, but also as the UUT for an RRTGen application, 
+with commands received from the RRTGen application via named pipes.
+
+In implementing +elevator+ as a literate program,
+I hope to explain the design and logic of the program in an order and 
+fashion that facilitates your understanding of the implementation,
+as well as providing all of the code.
+
+(((coroutine statements,+cobegin+)))
+(((coroutine statements,+coresume+)))
+(((coroutine statements,+invoke+)))
+(((coroutine statements,+wait+)))
+(((coroutine statements,+waitEx+)))
+(((coroutine statements,+when+)))
+Hopefully the +elevator+ program code presented here 
+demonstrates how easy it can be to create a moderately complex
+application, with many cooperative tasks, through the use of coroutines.
+Note that these coroutines are just standard C++ procedures, 
+with the simple addition of a couple of coroutine statements 
+from the sccor library:
+  
+* +cobegin+, to initialize 
+coroutine execution and put one or more coroutines on the multitasking 
+ring, and 
+
+* +coresume+, to perform an unconditional task switch to yield execution
+to the other coroutines on the ring, as appropriate to maintain 
+the behavior and performance profile of 
+the ensemble of executing coroutines.
+
+The +cobegin+ statement blocks further execution of the calling routine
+(usually +main+)
+while the coroutine instances created by +cobegin+ are executing.
+When all coroutine instances have finished their execution, the routine that
+issued the +cobegin+ statement continues its 
+execution in a normal manner.
+
+For a trivial example, below is a coroutine, +repeatChar+, that writes 
+its input character a specified number of times and returns.
+After each character is written, +repeatChar+ yields
+via a +coresume+ statement.
+
+[source,C]
+----
+void repeatChar( char c, int count ) {
+   for ( i = 0; i < count; i++ ) {
+      putchar( c ) ;
+      coresume() ;
+   }
+}
+----
+
+When executed as the only coroutine instance, with input character `a' 
+and a count of 10, +repeatChar+ produces this string of 10 a's on stdout:
+
+----
+aaaaaaaaaa
+----
+
+When two instances of +repeatChar+ are executed together, the first 
+with input `a' and a count of 10 (as before) and a second with input 
+`b' and also a count of 10, their interleaved output is:
+ 
+----
+abababababababababab
+---- 
+
+Each instance of +repeatChar+ acts as an independent task, ouputting its
+designated character.
+By issuing a +coresume+ after outputting its character, the instance allows 
+any another instance to do its thing, in this case outputting its character.
+This leads to the string of interspersed a's and b's of the result.
+
+Here's the +cobegin+ statement to start these two instances:
+
+[source,C]
+----
+cobegin( 2,                            // start 2 coroutines 
+            repeatChar, 2, 'b', 10,    // 2 parameters ('b' and '10')
+            repeatChar, 2, 'a', 10     // 2 parameters ('a' and '10')
+) ;
+----
+
+The second instance executes first, since the coroutines are
+stacked by +cobegin+ until it completes its initialization.
+
+Besides +cobegin+ and +coresume+, the sccor library provides a few 
+optional statements: 
+
+* +invoke+ adds another coroutine to the 
+ring of currently-executing coroutines,
+
+* +wait+ delays a coroutine's execution for at least a specified 
+number of milliseconds while continuing other coroutines,
+
+* +waitEx+ waits for at least a specified number of milliseconds 
+while continuing other coroutines; the waiting period is interrupted 
+if a specified boolean becomes false, and
+
+* +when+ provides a conditional task switch, continuing other coroutines
+until a specified boolean becomes true. 
+ 
+Note that there is no need for a special "coroutine exit" or "coroutine 
+return" command to complete execution of a coroutine.  
+Coroutines complete execution by the ordinary C/C++ procedure behavior, 
+either by a +return+ statement or just "falling off" the end of the function. 
+
+TIP: In our case a coroutine is just an ordinary C/C++ procedure 
+which contains at least one +coresume+ statement.
+
+We'll see examples of these coroutine statements in the implementation 
+of the +elevator+ program. 
+
+<<<
+=== Overview
+
+The +elevator+ program simulates a bank of elevators in a building 
+having a user-specified number of floors and elevator shafts.
+The simulation supports from one to nine elevator shafts and from two
+to nine floors. 
+
+==== Elevator Elements and Basic Terminology
+
+Here is an annotated screenshotfootnote:[The colored lines and text are 
+just for expository purposes.
+The actual +elevator+ screen is rather drab.] of a building with a full 
+complement of floors (9) and shafts (9):
+
+image::complete_bank.png[height=400,align="left"]
+
+==== Floors
+
+*Floors* are depicted as horizontal arrays of elevator doors.
+Each floor has a label.  
+
+The 3rd floor in the illustration is highlighted in blue.
+
+==== Floor Labels
+
+The floor labels are on the left, highlighted in yellow in the above 
+illustration.
+
+==== Floor Call Buttons
+
+Each floor has an associated pair of  
+*floor call buttons*, "U" for up and "D" for down. 
+These are located on the right side and highlighted in pink in the illustration.
+
+A floor call button lights up when pressed by a simulated person
+waiting for an elevator car to stop at the person's floor.footnote:[We'll see 
+the floor stop request command as part of the +elevator+ simulation user 
+interface.]
+
+==== Shafts
+
+*Shafts* are depicted as vertical arrays of elevator doors.
+
+==== Shaft Labels
+
+Each shaft has a label, from 1 to the number of shafts.
+The shaft labels are on the top, highlighted in orange in the illustration.
+
+Shaft #5 in the illustration is highlighted in green.
+
+==== Elevator Cars
+
+Elevator cabins, or "*cars*", run up and down in their respective shafts.
+We assume a one-to-one relationship between an elevator car and its shaft.
+We can, therefore, refer to a car by its shaft number, since each car runs 
+exclsively in one shaft.
+
+An elevator car is depicted in a quasi x-ray manner, showing its
+position via a column of left- and right-side bracketing asterisks that let us
+"see" the car behind the wall of the buildingfootnote:[Simple, but, hey, 
+this is just a character-based graphical presentation.].
+In the illustration, car number 2 (_i.e._, in shaft #2) is outlined in red.
+Car number 2 is currently at the Lobby floor "[L]", as are all of the
+other elevator cars.
+
+Here is an enlarged look at an elevator car:
+
+image::elevator_car.png[height=50,align="left"]
+
+The asterisks move as the car travels up and down its shaft to
+show the car's motion and position.footnote:[The (external) doors 
+remain stationary.]
+
+==== In-Car Call Buttons
+
+Two left-hand columns inside each elevator car show *in-car call buttons*
+indicating floors where the car has been requested to stop, in our case 
+by a simulated elevator passenger in the car having pressed a floor 
+button.footnote:[We'll see the car
+call button command as part of the +elevator+ simulation user 
+interface.]
+A car call button "lights up" when the corresponding floor has been
+requested as a stop destination for that car.
+For example, here we show two stop requests, for the 3rd floor "[3]" and
+for the 5th floor "[5]":  
+ 
+image::car_with_stop_requests_3_5.png[height=50,align="left"]
+
+==== Direction Indicator
+
+When a car stops at a floor, a *direction indicator* above the door 
+lights to indicate 
+the car's current direction, a green "^" for up or a red "v" for down.
+Here we have a car arriving at a floor with the up indicator lit:
+ 
+image::car_arriving_going_up.png[height=50,align="left"]
+ 
+The direction indicator stays lit while the car's door opens,  
+passengers leave and enter the car, and the car's door closes.
+The direction indicator turns off when the door is locked after closing
+and prior to any movement.
+
+==== Ground Level
+
+*Ground level* is shown as a row of equal signs ("===...===").
+In the example, the floor above ground level has label "[L]" for Lobby.
+The floor below ground has label "[B]" for Basement.
+Successive floors above the Lobby are labeled [2] - [8].
+At the beginning of the simulation, all cars start in the floor just
+above ground ("[L]" in this case).
+
+==== Command Area
+
+There is a *command area* at the bottom where user-keyed input appears.
+The command area is highlighted in brown in the illustration.                                       
+
+//// 
+When the +elevator+ program is executed, a blank Terminal window 
+is shown initially. 
+
+Two coroutines are running, inconspicuously:
+
+. +userInterface+
+. +roundTripCounter+
+
+The +userInterface+ coroutine reads keystrokes and performs the indicated
+user actions.
+ 
+The +roundTripCounter+ just counts the number of trips around the 
+coroutine ring. Before exiting, +elevator+ displays the number of active
+coroutine instances at exit, the coroutine 
+roundtrip count, and average time per cycle. 
+////
+
+== +elevator+ Execution Instructions
+
+. Run the +elevator+ executable in a macOSfootnote:[Big Sur (11.0), 
+or later, is supported.] or Windows (Cygwin) Terminal. 
++
+The size of the Terminal screen must be sufficient to display the
+entire building.
+For purposes of this demonstration, a building with 6 floors and 7 
+elevator shafts will be simulated, requiring a Terminal window size of 
+at least 83 colmns x 45 rows.footnote:[Set Terminal's Window Size
+in Terminal > Preferences... > Profiles > Window.]
++
+The +elevator+ executable requires two parameters, the number of floors
+and the number of elevator shafts.
++
+Syntax:
++
+[source,C]
+----
+% elevator -floors [<count>|<labels>] -n <elevators> [-pipes] [-wait]
+----
++
+Options may be abbreviated to one letter following the dash,
+_e.g._, "++-f [<count>|<labels>]++". 
++
+Help is available by specifying a "++-h++" option.
++
+The +-pipes+ option causes the simulation to communicate via 
+named pipes (_vs._ using normal console input).
+We will not be using the +-pipes+ option in this demonstration.
++
+The +-wait+ option causes the simulation to pause prior to 
+the simulation to display some execution details.
+We will not be using the +-wait+ option in this demonstration.
++
+For this demonstration, enter:
++
+[source,C]
+----
+% elevator -f B#L2-5 -n 7 
+----
++
+creating a simulation of 7 elevator shafts in a building
+having 6 floors, labeled 'B', 'L', '2', '3', '4', and '5'.
++
+image::initial_screen.png[height=350,align="left"]
++
+Note that the floor labeled 'L' is the ground floor.
+The floor after the "#" in the floor labels string is the ground floor.
+All elevator cars start the simulation on the ground floor 
+(here the Lobby Floor).
+
+. You can exercise the +elevator+ program with these commands available 
+during the simulation:
++
+[cols="<1,<3",width="95%",frame="none",grid="none"]
+|====
+|+c<floor><car>+ |pushes <floor> button in <car>.     
+|+f<floor><up\|down>+ |pushes <floor> call up or down button.
+|+xnn<enter>+ |speeds up the simulation by a factor of nn (1 - 10). 
+|+q+ |ends the simulation.
+|====
++
+Examples:
++
+[cols="<1,<3",width="95%",frame="none",grid="none"]
+|====
+|+cb4+ |sends car 4 to the basement.
+|+f3u+ |pushes the up button on floor 3.
+|====
++
+For example, key "cb4" to send car 4 to the Basement.footnote:[No Enter key is
+necessary for your inputs, which appear in the Command area as you type.
+If you type an invalid key for the command, it is just ignored.]
++
+You will see the "[B]" car button light up and car 4 will descend to the Basement.
+Upon arriving, the up direction indicator "^" will light (in green), the car 
+will make a "ding" soundfootnote:[Actually, on my MacBook Pro it is a "tock" 
+rather than a "ding".], and the elevator doors will open.
+Once the doors are fully open, in about 2 seconds, they will 
+remain open for about 5 seconds to allow for simulated passengers' 
+entering and exiting the car.
+Then the doors will close and the direction indicator will turn off.
+
+. You can see several cars moving by keying multiple commands in succession:
+"c53" will send car 3 to floor 5, "c42" will send car 2 to floor 4, _etc_.
+
+. You can cause a car to stop at multiple floors: key "cl7", then "c27", "c37",
+"c47", "c57", "cb7".
+Car 7 will proceed up to floor 5, opening the door at the Lobby (where it is
+currently), then stopping at floors 2, 3, 4, and 5, before descending
+to the Basement.
+  
+. You can send all cars to a given floor by keying "\*" for the car number.
+For example, send all cars to the Basement by keying "cb*".  
+
+. You can simulate pressing a floor call button by keying, for example, 
+"f3u" to push the up button of floor 3.  
++
+When a floor button is pushed, the corresponding up or down indicator lights
+up on the right hand side of the floor.
+The indicator stays lit until a car arrives at the floor headed in the 
+indicator's direction.
+
+. Having played with the +elevator+ simulation for a while, the
+impatient user may enter the command "x5" (followed by the Enter key, 
+in just the case of the "x" command, due to its variable-length 
+one- or two-digit parameter) 
+to speed up the simulation by a factor of 5.
+For example, you might send all cars to the Basement ("cb*"),  
+speed up the simulation by a factor of 5 ("x5" and Enter), and then send all
+cars to the 5th floor ("c5*").
++
+_Voila_!
+Turbo elevators !
++
+In fact the simulation may be sped up by a factor of between 1 and 10.
++
+To resume normal speed, enter "x1" (remembering to add the Enter key).
+
+. That's about all there is to the simulation.footnote:[When executing with 
+a test program communicating via pipes, the +elevator+ program can be driven
+to a sufficient level of activity that it provides a more entertaining 
+performance.]
++
+Rinse and repeat _ad nauseam_.
+
+. Terminate the +elevator+ session by keying "q".
+
+////
+== Some Comments on +elevator+ Behavior 
+
+The default behavior of an +elevator+ instance is to take approximately 
+one second to make an edge-to-edge transit across the screen, 
+and then another second to return. 
+This paced behavior may be overridden by keying a lowercase `w',
+allowing all coroutines to execute at maximum velocity 
+(_i.e._, without waiting for pacing).
+Paced execution may be resumed by keying an uppercase `W'.
+
+An instance of `>', `<', `A', or `V' may be terminated by keying
+`,\', `.\', `a', or `v', respectively.
+Note that these are the lowercase keys corresponding to the 
+instance activating keys.
+
+Having invoked a number of the various coroutine instances, the
+impatient user may key an uppercase `C' to invoke 100 additional 
+coroutine instances, 25 each of `>', `<', `A', and `V'.
+A lowercase `c' terminates the 100 most-recently-invoked instances.
+ 
+Even more:  keying uppercase `M' invokes 1,000 additional instances,
+250 each of `>', `<', `A', and `V'. 
+A lowercase `m' terminates the 1000 most-recently-invoked instances.
+
+These steps may be repeated as desired to gain an appreciation of the
+speed of these simple coroutines, especially without pacing.
+However, with a large number of instances, the visual 
+display may become complicated, if not confusing.
+
++elevator+ limits the number of active instances to 3,000.
+As the number of instances approaches this limit, the time for each 
+instance to transit the screen increases substantially due to the 
+single-threaded nature of the sccor library coroutines implementation.
+
+Here are some representative screen transit timesfootnote:[On a MacBook 
+Pro (16-inch, 2019) with 2.4 GHz 8-Core Intel Core I9, running in an 80x24 
+window.] as the count of active dart instances increases:
+
+image::elevatorTiming.png[width="60%",align="left"]
+ 
+For this +elevator+ demonstration, with coroutine pacing implemented to
+produce target screen transit times of about one second, the performance 
+is flat through at least 100 concurrent elevator instances, with
+a slight performance decrease through the next 900 or so instances.
+Above that, the increased time required for a screen transit 
+becomes noticeable.
+However, in the real world, more than 1,000 concurrently 
+executing coroutine instances would be extraordinarily uncommon.
+For example, the number of concurrent instances employed in testing embedded 
+medical devices with RRTGen, 
+which utilizes these simple sccor Library coroutines, is generally 
+less than 20.
+
+In a real application, the performance of these simple coroutines must be 
+analyzed with respect to the application's performance requirements.
+In my experience, the performance of these coroutines is more than satisfactory.
+As a point of reference, with 100 dart instances running, the
+average elapsed time for an execution cycle (_i.e._, from a given instance's
+yielding with a +coresume+ until it starts executing again at the statement
+after the +coresume+) is 21 microseconds.
+With 4 instances running, the elapsed time is 1.6 microseconds.
+ 
+////

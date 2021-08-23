@@ -1,0 +1,19 @@
+
+[bibliography]
+== References
+[bibliography]
+.Books
+- [[[ls-elevator]]] Leon Starr,
+    'Executable UML - The Elevator Project',
+    Model Integration LLC (2001),
+    ISBN 0-9708044-0-7.
+[bibliography]
+.Articles
+- [[[cc-darts]]] Cary WR Campbell,
+    'The +darts+ Program',
+    2021,
+    available from the author.
+- [[[pbh-edison]]] Per Brinch Hansen, 
+    'Edison--a Multiprocessor Language', 
+    _Software Practice and Experience_ 11, no. 4 (April 1981): 325 - 362.
+
