@@ -33,3 +33,7 @@
 
 # macOS detritis
 .DS_Store
+
+# Outfile Directories
+Debug/
+Release/
