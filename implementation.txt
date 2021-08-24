@@ -1711,11 +1711,16 @@ if ( !configurationIsOK ) {
 Here is a sequence diagram showing a typical set of configuration exchanges 
 between the testing process and ++elevator++.
 
-.Sequence diagram for typical configuration messages and replies
-["plantuml"]
-----
-include::typical_testing_configuration_exchange.txt[]
-----
+////
+//*** Until I figure out how to fix missing plantuml style. ***
+//.Sequence diagram for typical configuration messages and replies
+//["plantuml"]
+//----
+//include::typical_testing_configuration_exchange.txt[]
+//----
+////
+
+image::elevator__1.png[height=700,align="center"]
 
 ==== Input Verification without a Testing Process
 
