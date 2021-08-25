@@ -39,7 +39,7 @@
 /******************************* Configuration ********************************/
 /* Uncomment the following define line for a histogram of coroutine           **
 ** round-trip latencies.                                                      */
-#define SHOW_HISTOGRAM
+//#define SHOW_HISTOGRAM
 /* Uncomment the following define line for more info about the configuration  **
 ** sent from the test program.                                                */
 //#define VERBOSE_CONFIGURATION
